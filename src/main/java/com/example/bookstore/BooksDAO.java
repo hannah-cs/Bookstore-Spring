@@ -6,15 +6,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-    @Repository
+@Repository
     public class BooksDAO {
+
+        private DatabaseManager databaseManager;
+
+        @Autowired
+        public BooksDAO(DatabaseManager databaseManager) {
+            this.databaseManager = databaseManager;
+        }
 
         public List<Book> getAllBooks() {
             List<Book> books = new ArrayList<>();
             try {
-                Connection connection = DatabaseManager.getConnection();
+                Connection connection = databaseManager.getConnection();
                 System.out.println("Connected to the database successfully. Returning all books.");
                 String query = "SELECT * FROM books;";
                 try (PreparedStatement pst = connection.prepareStatement(query);
@@ -30,7 +39,7 @@ import org.springframework.stereotype.Repository;
                         );
                         books.add(book);
                     }
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -43,7 +52,7 @@ import org.springframework.stereotype.Repository;
 
         public List<Book> getBookById(int id) {
             List<Book> books = new ArrayList<>();
-            try (Connection connection = DatabaseManager.getConnection();
+            try (Connection connection = databaseManager.getConnection();
                  PreparedStatement pst = connection.prepareStatement("SELECT * FROM books WHERE id = ?")) {
                 pst.setInt(1, id);
                 System.out.println("Connected to the database successfully. Searching ID column for "+id);
@@ -58,7 +67,7 @@ import org.springframework.stereotype.Repository;
                         );
                         books.add(book);
                     }
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -71,7 +80,7 @@ import org.springframework.stereotype.Repository;
 
         public List<Book> getBooksByTitle(String title) {
             List<Book> books = new ArrayList<>();
-            try (Connection connection = DatabaseManager.getConnection();
+            try (Connection connection = databaseManager.getConnection();
                  PreparedStatement pst = connection.prepareStatement("SELECT * FROM books WHERE title LIKE ?")) {
                 pst.setString(1, "%" + title + "%");
                 System.out.println("Connected to the database successfully. Searching title column for "+title);
@@ -86,7 +95,7 @@ import org.springframework.stereotype.Repository;
                         );
                         books.add(book);
                     }
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -99,7 +108,7 @@ import org.springframework.stereotype.Repository;
 
         public List<Book> getBooksByAuthor(String author) {
             List<Book> books = new ArrayList<>();
-            try (Connection connection = DatabaseManager.getConnection();
+            try (Connection connection = databaseManager.getConnection();
                  PreparedStatement pst = connection.prepareStatement("SELECT * FROM books WHERE author LIKE ?")) {
                 pst.setString(1, "%" + author + "%");
                 System.out.println("Connected to the database successfully. Searching author column for "+author);
@@ -114,7 +123,7 @@ import org.springframework.stereotype.Repository;
                         );
                         books.add(book);
                     }
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
 
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -128,7 +137,7 @@ import org.springframework.stereotype.Repository;
 
         public boolean createBook(Book newBook) {
             try {
-                Connection connection = DatabaseManager.getConnection();
+                Connection connection = databaseManager.getConnection();
                 String query = "INSERT INTO books (title, author, price, quantity) VALUES (?, ?, ?, ?)";
                 System.out.println("Connected to the database successfully. Creating new book.");
                 try (PreparedStatement pst = connection.prepareStatement(query)) {
@@ -137,7 +146,7 @@ import org.springframework.stereotype.Repository;
                     pst.setDouble(3, newBook.getPrice());
                     pst.setInt(4, newBook.getQuantity());
                     int rowsAffected = pst.executeUpdate();
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -150,7 +159,7 @@ import org.springframework.stereotype.Repository;
 
         public boolean updateBook(Book updatedBook) {
             try {
-                Connection connection = DatabaseManager.getConnection();
+                Connection connection = databaseManager.getConnection();
                 System.out.println("Connected to the database successfully. Updating book.");
                 if (bookExists(updatedBook.getId(), connection)) {
                     String updateQuery = "UPDATE books SET title=?, author=?, price=?, quantity=? WHERE id=?";
@@ -161,12 +170,12 @@ import org.springframework.stereotype.Repository;
                         updateStatement.setInt(4, updatedBook.getQuantity());
                         updateStatement.setInt(5, updatedBook.getId());
                         int rowsAffected = updateStatement.executeUpdate();
-                        DatabaseManager.closeConnection(connection);
+                        databaseManager.closeConnection(connection);
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                 } else {
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 }
             } catch (SQLException e) {
                 System.out.println("Error connecting to the database");
@@ -188,19 +197,19 @@ import org.springframework.stereotype.Repository;
 
         public boolean deleteBook(int id) {
             try {
-                Connection connection = DatabaseManager.getConnection();
+                Connection connection = databaseManager.getConnection();
                 System.out.println("Connected to the database successfully. Deleting book "+id);
                 if (bookExists(id, connection)) {
                     String updateQuery = "DELETE FROM books WHERE id = ?";
                     try (PreparedStatement updateStatement = connection.prepareStatement(updateQuery)) {
                         updateStatement.setInt(1, id);
                         int rowsAffected = updateStatement.executeUpdate();
-                        DatabaseManager.closeConnection(connection);
+                        databaseManager.closeConnection(connection);
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                 } else {
-                    DatabaseManager.closeConnection(connection);
+                    databaseManager.closeConnection(connection);
                 }
             } catch (SQLException e) {
                 System.out.println("Error connecting to the database");
